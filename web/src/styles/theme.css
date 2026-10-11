@@ -1,0 +1,405 @@
+/* ============================================================
+   ATV Homepage · 全局主题
+   视觉基调：深空背景 + 毛玻璃卡片 + Apple 式缓动
+   ============================================================ */
+
+:root {
+  /* 色彩 */
+  --bg: #06070b;
+  --bg-soft: #0b0d14;
+  --text: #f4f6fb;
+  --text-dim: rgba(244, 246, 251, 0.62);
+  --text-faint: rgba(244, 246, 251, 0.36);
+  --glass: rgba(255, 255, 255, 0.055);
+  --glass-strong: rgba(255, 255, 255, 0.1);
+  --stroke: rgba(255, 255, 255, 0.09);
+  --stroke-strong: rgba(255, 255, 255, 0.18);
+  --accent: #7fb2ff;
+  --accent-strong: #4d8dff;
+  --danger: #ff6b6b;
+
+  /* 缓动：Apple TV 的“呼吸感”来自长时值 + 强 ease-out */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur: 300ms;
+  --dur-slow: 520ms;
+
+  --radius-lg: 26px;
+  --radius-md: 18px;
+  --radius-sm: 12px;
+
+  --header-h: 76px;
+  --shadow-card: 0 18px 44px rgba(0, 0, 0, 0.42);
+  --shadow-card-hover: 0 30px 70px rgba(0, 0, 0, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  /* 背景色由 html 提供；body 不能有不透明背景，否则会盖住 z-index:-1 的背景层 */
+  background: transparent;
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+::selection {
+  background: rgba(127, 178, 255, 0.32);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* ---------- 背景：深空 + 漂浮光晕 ---------- */
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(63, 96, 180, 0.28) 0%, transparent 55%),
+    radial-gradient(90% 70% at 85% 110%, rgba(120, 70, 190, 0.22) 0%, transparent 60%),
+    linear-gradient(180deg, #080a11 0%, var(--bg) 55%, #05060a 100%);
+}
+
+/* 自定义壁纸（静态固定画面） */
+.page-bg__photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.page-bg__photo.is-loaded {
+  opacity: 1;
+}
+
+/* 深色遮罩，保证文字与图标可读 */
+.page-bg__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 11, 0.66) 0%, rgba(5, 7, 11, 0.3) 34%, rgba(5, 7, 11, 0.52) 72%, rgba(5, 7, 11, 0.84) 100%),
+    radial-gradient(120% 90% at 50% 0%, rgba(6, 8, 14, 0.22), transparent 62%);
+}
+
+.page-bg__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.32;
+  will-change: transform;
+}
+
+.page-bg__glow--a {
+  width: 52vw;
+  height: 52vw;
+  left: -12vw;
+  top: -18vw;
+  background: radial-gradient(circle, rgba(96, 150, 255, 0.5), transparent 68%);
+}
+
+.page-bg__glow--b {
+  width: 44vw;
+  height: 44vw;
+  right: -10vw;
+  top: 22vh;
+  background: radial-gradient(circle, rgba(158, 108, 255, 0.42), transparent 68%);
+}
+
+.page-bg__noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- 通用组件 ---------- */
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: var(--glass);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition:
+    transform var(--dur) var(--ease-spring),
+    background var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    opacity var(--dur-fast) ease;
+  will-change: transform;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  background: var(--glass-strong);
+  border-color: var(--stroke-strong);
+}
+
+.btn:active {
+  transform: scale(0.97);
+  transition-duration: 90ms;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.btn--primary {
+  background: linear-gradient(180deg, var(--accent-strong), #3a6fe0);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(77, 141, 255, 0.32);
+}
+
+.btn--primary:hover {
+  background: linear-gradient(180deg, #61a0ff, var(--accent-strong));
+  box-shadow: 0 18px 40px rgba(77, 141, 255, 0.42);
+}
+
+.btn--danger {
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.35);
+}
+
+.btn--danger:hover {
+  background: rgba(255, 107, 107, 0.14);
+}
+
+.btn--sm {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 14px;
+  transition:
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: rgba(127, 178, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(77, 141, 255, 0.16);
+}
+
+.select option {
+  background: var(--bg-soft);
+  color: var(--text);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.field__error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* ---------- 入场 / 过渡动画 ---------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise var(--dur-slow) var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+  will-change: transform, opacity;
+}
+
+/* 滚动入场：配合 v-intersect */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0) scale(0.96);
+  transition:
+    opacity 420ms var(--ease-out),
+    transform 520ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 28ms);
+  will-change: transform, opacity;
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* 页面切换 */
+.page-enter-active {
+  transition: opacity 320ms var(--ease-out), transform 380ms var(--ease-out);
+}
+
+.page-leave-active {
+  transition: opacity 180ms var(--ease-in-out), transform 200ms var(--ease-in-out);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0) scale(0.99);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -14px, 0) scale(0.995);
+}
+
+/* 抽屉 / 浮层通用 */
+.layer-enter-active,
+.layer-leave-active {
+  transition: opacity 260ms var(--ease-out);
+}
+
+.layer-enter-from,
+.layer-leave-to {
+  opacity: 0;
+}
+
+/* ---------- Lenis 平滑滚动配套 ---------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ---------- 滚动条 ---------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+  background-clip: content-box;
+}
+
+/* ---------- 无障碍：减少动效 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

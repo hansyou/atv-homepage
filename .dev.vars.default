@@ -1,0 +1,4 @@
+# 本地开发用（wrangler dev 读取），生产环境用 `wrangler secret put ADMIN_PASSWORD`
+ADMIN_PASSWORD=change-me
+# 可选：会话签名密钥，不填则由 ADMIN_PASSWORD 派生
+SESSION_SECRET=dev-session-secret

@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "atv-homepage",
+  "main": "server/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "atv-homepage",
+      "database_id": "0253395f-f22b-4f89-ba6d-d31959b71f95"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

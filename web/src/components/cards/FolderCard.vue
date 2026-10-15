@@ -8,8 +8,10 @@ const props = withDefaults(
     folder: Folder
     links: Link[]
     editable?: boolean
+    /** 启动台编辑模式：抖动 */
+    editing?: boolean
   }>(),
-  { editable: false },
+  { editable: false, editing: false },
 )
 
 const emit = defineEmits<{ open: [folder: Folder]; edit: [folder: Folder]; remove: [folder: Folder] }>()
@@ -33,6 +35,7 @@ function onMove(e: PointerEvent) {
 <template>
   <div
     class="fcard"
+    :class="{ 'is-jiggling': editing, 'is-editing': editing }"
     role="button"
     tabindex="0"
     :style="{ '--folder-color': folder.color }"
@@ -90,6 +93,15 @@ function onMove(e: PointerEvent) {
 
 .fcard:hover {
   transform: translateY(-3px);
+}
+
+.fcard.is-editing:hover {
+  transform: none;
+}
+
+.fcard.is-editing .fcard__tools {
+  opacity: 1;
+  transform: none;
 }
 
 .fcard:focus-visible {

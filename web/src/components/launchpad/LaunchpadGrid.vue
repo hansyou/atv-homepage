@@ -5,6 +5,7 @@ import type { GridItem } from '../../stores/catalog'
 import { useAuth } from '../../stores/auth'
 import { useCatalog } from '../../stores/catalog'
 import { useUi } from '../../stores/ui'
+import { useDragSort } from '../../composables/useDragSort'
 import FolderCard from '../cards/FolderCard.vue'
 import LinkCard from '../cards/LinkCard.vue'
 
@@ -12,66 +13,33 @@ const catalog = useCatalog()
 const ui = useUi()
 const auth = useAuth()
 
-const dragIndex = ref(-1)
-const overIndex = ref(-1)
-const dragging = ref(false)
+const gridEl = ref<HTMLElement | null>(null)
+const editing = computed(() => auth.authed && ui.launchpadEditing)
 
-const items = computed<GridItem[]>(() => catalog.topLevel)
-
-function resetDrag(): void {
-  dragging.value = false
-  dragIndex.value = -1
-  overIndex.value = -1
-}
-
-function onDragStart(e: DragEvent, index: number): void {
-  if (!auth.authed) return
-  dragging.value = true
-  dragIndex.value = index
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', String(index))
-  }
-}
-
-function onDragOver(e: DragEvent, index: number): void {
-  if (!dragging.value) return
-  e.preventDefault()
-  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
-  overIndex.value = index
-}
-
-async function onDropAt(e: DragEvent, index: number): Promise<void> {
-  if (!dragging.value) return
-  e.preventDefault()
-  const from = dragIndex.value
-  resetDrag()
-  if (from < 0 || from === index) return
-  try {
-    const next = [...items.value]
-    const [moved] = next.splice(from, 1)
-    next.splice(index, 0, moved)
-    await catalog.applyOrder(next)
-  } catch (err) {
-    ui.toast((err as Error).message, 'error')
-  }
-}
-
-/** 把网址拖进文件夹 */
-async function onDropOnFolder(e: DragEvent, folder: Folder): Promise<void> {
-  if (!dragging.value) return
-  e.preventDefault()
-  e.stopPropagation()
-  const item = items.value[dragIndex.value]
-  resetDrag()
-  if (!item || item.type !== 'link') return
-  try {
-    await catalog.moveLinkToFolder(item.link.id, folder.id)
-    ui.toast(`已移入「${folder.name}」`, 'success')
-  } catch (err) {
-    ui.toast((err as Error).message, 'error')
-  }
-}
+const { order, dragKey, dropKey, styleFor, onPointerDown, onClickCapture } = useDragSort<GridItem>({
+  container: gridEl,
+  source: () => catalog.topLevel,
+  enabled: () => auth.authed && ui.launchpadEditing,
+  armLongPress: () => auth.authed,
+  onEnterEditMode: () => ui.setLaunchpadEditing(true),
+  onCommit: async (ordered) => {
+    try {
+      await catalog.applyOrder(ordered)
+    } catch (err) {
+      ui.toast((err as Error).message, 'error')
+    }
+  },
+  canDropOn: (drag, over) => drag.type === 'link' && over.type === 'folder',
+  onDropOn: async (drag, over) => {
+    if (drag.type !== 'link' || over.type !== 'folder') return
+    try {
+      await catalog.moveLinkToFolder(drag.link.id, over.folder.id)
+      ui.toast(`已移入「${over.folder.name}」`, 'success')
+    } catch (err) {
+      ui.toast((err as Error).message, 'error')
+    }
+  },
+})
 
 async function onEditLink(link: Link): Promise<void> {
   ui.openLinkEditor(link)
@@ -105,34 +73,37 @@ async function onRemoveFolder(folder: Folder): Promise<void> {
 </script>
 
 <template>
-  <div class="grid">
-    <template v-for="(item, i) in items" :key="item.key">
+  <div class="grid" ref="gridEl" @click.self="editing && ui.setLaunchpadEditing(false)">
+    <template v-for="(item, i) in order" :key="item.key">
       <div
         class="grid__cell reveal"
         v-intersect
-        :class="{ 'is-over': overIndex === i && dragIndex !== i, 'is-dragging': dragIndex === i, 'is-grabbable': auth.authed }"
-        :style="{ '--i': i % 12 }"
-        :draggable="auth.authed"
-        @dragstart="onDragStart($event, i)"
-        @dragover="onDragOver($event, i)"
-        @drop="onDropAt($event, i)"
-        @dragend="resetDrag"
+        :data-sort-key="item.key"
+        :style="styleFor(item, { '--i': i % 12 })"
+        :class="{
+          'is-editing': editing,
+          'is-dragging': dragKey === item.key,
+          'is-drop-target': dropKey === item.key,
+        }"
+        @pointerdown="onPointerDown($event, item)"
+        @click.capture="onClickCapture"
+        @dragstart.prevent
       >
         <FolderCard
           v-if="item.type === 'folder'"
           :folder="item.folder"
           :links="catalog.linksOf(item.folder.id)"
           :editable="auth.authed"
+          :editing="editing"
           @open="ui.openFolderOverlay($event.id)"
           @edit="onEditFolder"
           @remove="onRemoveFolder"
-          @dragover.stop="onDragOver($event, i)"
-          @drop.stop="onDropOnFolder($event, item.folder)"
         />
         <LinkCard
           v-else
           :link="item.link"
           :editable="auth.authed"
+          :editing="editing"
           @edit="onEditLink"
           @remove="onRemoveLink"
         />
@@ -150,7 +121,7 @@ async function onRemoveFolder(folder: Folder): Promise<void> {
       </button>
     </template>
 
-    <p v-if="!items.length && !auth.authed" class="grid__empty">
+    <p v-if="!order.length && !auth.authed" class="grid__empty">
       启动台还是空的 — 点击右上角「管理」登录后添加网址
     </p>
   </div>
@@ -174,27 +145,35 @@ async function onRemoveFolder(folder: Folder): Promise<void> {
     transform 320ms var(--ease-spring),
     opacity 320ms var(--ease-out);
   will-change: transform;
+  -webkit-touch-callout: none;
 }
 
-.grid__cell.is-grabbable {
+.grid__cell.is-editing {
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.grid__cell.is-editing:active {
+  cursor: grabbing;
 }
 
 .grid__cell.is-dragging {
-  opacity: 0.28;
-  transform: scale(0.94);
+  z-index: 40;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.5));
 }
 
-.grid__cell.is-over {
-  transform: scale(1.06);
+.grid__cell.is-drop-target {
+  transform: scale(1.08);
 }
 
-.grid__cell.is-over::after {
+.grid__cell.is-drop-target::after {
   content: '';
   position: absolute;
   inset: -2px;
   border-radius: var(--radius-lg);
-  border: 2px dashed rgba(127, 178, 255, 0.6);
+  border: 2px dashed rgba(127, 178, 255, 0.7);
   animation: pulse 0.9s var(--ease-in-out) infinite;
   pointer-events: none;
 }

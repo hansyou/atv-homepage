@@ -305,9 +305,33 @@ select {
   will-change: transform, opacity;
 }
 
-.reveal.in-view {
+/* 用属性而非 class 标记：元素的 :class 绑定更新时 Vue 会重写 className，指令追加的 class 会被抹掉 */
+.reveal[data-in-view] {
   opacity: 1;
   transform: none;
+}
+
+/* 启动台编辑模式：图标抖动（macOS Launchpad 风格） */
+@keyframes jiggle {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+.is-jiggling {
+  animation: jiggle 0.3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -97ms);
+}
+
+/* 拖拽排序中：禁用选中与 I-beam 光标 */
+body.is-sorting {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing;
 }
 
 /* 页面切换 */

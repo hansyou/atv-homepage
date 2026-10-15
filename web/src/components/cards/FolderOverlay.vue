@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Link } from '../../api/types'
 import { useAuth } from '../../stores/auth'
 import { useCatalog } from '../../stores/catalog'
 import { useUi } from '../../stores/ui'
+import { useDragSort } from '../../composables/useDragSort'
 import LinkCard from './LinkCard.vue'
 
 const catalog = useCatalog()
@@ -12,6 +13,29 @@ const auth = useAuth()
 
 const folder = computed(() => (ui.overlayFolderId ? catalog.folderOf(ui.overlayFolderId) : undefined))
 const links = computed(() => (folder.value ? catalog.linksOf(folder.value.id) : []))
+const editing = computed(() => auth.authed && ui.launchpadEditing)
+
+type SortLink = Link & { key: string }
+
+const items = computed<SortLink[]>(() => links.value.map((l) => ({ ...l, key: `l-${l.id}` })))
+
+const gridEl = ref<HTMLElement | null>(null)
+
+const { order, dragKey, styleFor, onPointerDown, onClickCapture } = useDragSort<SortLink>({
+  container: gridEl,
+  source: () => items.value,
+  enabled: () => auth.authed && ui.launchpadEditing,
+  armLongPress: () => auth.authed,
+  onEnterEditMode: () => ui.setLaunchpadEditing(true),
+  onCommit: async (ordered) => {
+    if (!folder.value) return
+    try {
+      await catalog.applyFolderOrder(folder.value.id, ordered.map((it) => ({ id: it.id })))
+    } catch (err) {
+      ui.toast((err as Error).message, 'error')
+    }
+  },
+})
 
 function onEdit(link: Link) {
   ui.openLinkEditor(link)
@@ -42,20 +66,29 @@ function close() {
               <h2 class="overlay__title">{{ folder.name }}</h2>
               <p class="overlay__sub">{{ links.length }} 个网址</p>
             </div>
-            <button class="btn btn--sm" @click="close">关闭</button>
+            <div class="overlay__actions">
+              <button v-if="auth.authed" class="btn btn--sm" @click="ui.toggleLaunchpadEditing()">
+                {{ editing ? '完成' : '编辑顺序' }}
+              </button>
+              <button class="btn btn--sm" @click="close">关闭</button>
+            </div>
           </header>
 
-          <div class="overlay__grid">
-            <LinkCard
-              v-for="link in links"
-              :key="link.id"
-              :link="link"
-              variant="mini"
-              :editable="auth.authed"
-              @edit="onEdit"
-              @remove="onRemove"
-            />
-            <p v-if="!links.length" class="overlay__empty">这个文件夹还是空的</p>
+          <div class="overlay__grid" ref="gridEl">
+            <div
+              v-for="(link, i) in order"
+              :key="link.key"
+              class="overlay__cell"
+              :data-sort-key="link.key"
+              :style="styleFor(link, { '--i': i % 12 })"
+              :class="{ 'is-editing': editing, 'is-dragging': dragKey === link.key }"
+              @pointerdown="onPointerDown($event, link)"
+              @click.capture="onClickCapture"
+              @dragstart.prevent
+            >
+              <LinkCard :link="link" variant="mini" :editable="auth.authed" :editing="editing" @edit="onEdit" @remove="onRemove" />
+            </div>
+            <p v-if="!order.length" class="overlay__empty">这个文件夹还是空的</p>
           </div>
         </section>
       </div>
@@ -117,11 +150,42 @@ function close() {
   color: var(--text-faint);
 }
 
+.overlay__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
 .overlay__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 10px;
   padding-top: 22px;
+}
+
+.overlay__cell {
+  position: relative;
+  border-radius: var(--radius-lg);
+  transition: transform 320ms var(--ease-spring);
+  will-change: transform;
+  -webkit-touch-callout: none;
+}
+
+.overlay__cell.is-editing {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.overlay__cell.is-editing:active {
+  cursor: grabbing;
+}
+
+.overlay__cell.is-dragging {
+  z-index: 40;
+  filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.5));
 }
 
 .overlay__empty {

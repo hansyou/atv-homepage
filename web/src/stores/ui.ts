@@ -14,6 +14,8 @@ export const useUi = defineStore('ui', () => {
   const folderEditorOpen = ref(false)
   const editingFolder = ref<Folder | null>(null)
   const overlayFolderId = ref<string | null>(null)
+  /** 启动台编辑模式（图标抖动，可拖拽排序） */
+  const launchpadEditing = ref(false)
   const toasts = ref<Toast[]>([])
   const confirmState = ref<ConfirmState>({ open: false, text: '', danger: false, resolve: null })
 
@@ -48,6 +50,14 @@ export const useUi = defineStore('ui', () => {
     overlayFolderId.value = folderId
   }
 
+  function setLaunchpadEditing(next: boolean): void {
+    launchpadEditing.value = next
+  }
+
+  function toggleLaunchpadEditing(): void {
+    launchpadEditing.value = !launchpadEditing.value
+  }
+
   function toast(text: string, type: Toast['type'] = 'info'): void {
     const id = ++seq
     toasts.value.push({ id, text, type })
@@ -79,6 +89,7 @@ export const useUi = defineStore('ui', () => {
     folderEditorOpen,
     editingFolder,
     overlayFolderId,
+    launchpadEditing,
     toasts,
     confirmState,
     hasLayer,
@@ -87,6 +98,8 @@ export const useUi = defineStore('ui', () => {
     openLinkEditor,
     openFolderEditor,
     openFolderOverlay,
+    setLaunchpadEditing,
+    toggleLaunchpadEditing,
     toast,
     dismissToast,
     confirm,

@@ -8,8 +8,10 @@ const props = withDefaults(
     link: Link
     variant?: 'hero' | 'grid' | 'mini'
     editable?: boolean
+    /** 启动台编辑模式：抖动、不可跳转 */
+    editing?: boolean
   }>(),
-  { variant: 'grid', editable: false },
+  { variant: 'grid', editable: false, editing: false },
 )
 
 const emit = defineEmits<{ edit: [link: Link]; remove: [link: Link] }>()
@@ -36,11 +38,12 @@ function onLeave(e: PointerEvent) {
 <template>
   <a
     class="lcard"
-    :class="[`lcard--${variant}`]"
-    :href="link.url"
+    :class="[`lcard--${variant}`, { 'is-jiggling': editing, 'is-editing': editing }]"
+    :href="editing ? undefined : link.url"
     target="_blank"
     rel="noopener noreferrer"
     :title="link.url"
+    @click="editing && $event.preventDefault()"
     @pointermove="onMove"
     @pointerleave="onLeave"
   >
@@ -94,6 +97,15 @@ function onLeave(e: PointerEvent) {
 
 .lcard:hover {
   transform: translateY(-3px);
+}
+
+.lcard.is-editing:hover {
+  transform: none;
+}
+
+.lcard.is-editing .lcard__tools {
+  opacity: 1;
+  transform: none;
 }
 
 .lcard:focus-visible {

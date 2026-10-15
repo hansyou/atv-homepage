@@ -105,12 +105,26 @@ export const useCatalog = defineStore('catalog', () => {
     await api.reorder(linkOrders, folderOrders)
   }
 
-  /** 把网址移入 / 移出文件夹（拖拽） */
+  /** 文件夹内拖拽排序 */
+  async function applyFolderOrder(folderId: string, ordered: { id: string }[]): Promise<void> {
+    ordered.forEach((item, index) => {
+      const target = links.value.find((l) => l.id === item.id)
+      if (target) target.sort_order = index
+    })
+    await api.reorder(
+      ordered.map((item, index) => ({ id: item.id, sort_order: index, folder_id: folderId })),
+      [],
+    )
+  }
+
+  /** 把网址移入 / 移出文件夹（拖拽），追加到目标列表末尾 */
   async function moveLinkToFolder(linkId: string, folderId: string | null): Promise<void> {
     const link = links.value.find((l) => l.id === linkId)
     if (!link) return
+    const sort_order = links.value.filter((l) => l.folder_id === folderId && l.id !== linkId).length
     link.folder_id = folderId
-    await api.updateLink(linkId, { folder_id: folderId })
+    link.sort_order = sort_order
+    await api.updateLink(linkId, { folder_id: folderId, sort_order })
   }
 
   async function saveSettings(patch: Record<string, string>): Promise<void> {
@@ -143,6 +157,7 @@ export const useCatalog = defineStore('catalog', () => {
     updateFolder,
     removeFolder,
     applyOrder,
+    applyFolderOrder,
     moveLinkToFolder,
     saveSettings,
     exportBackup,

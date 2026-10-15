@@ -11,9 +11,14 @@ const ui = useUi()
   <div class="lp">
     <header class="lp__head">
       <h2 class="lp__title">启动台</h2>
-      <button class="btn btn--primary lp__manage" @click="ui.openDrawer('site')">
-        {{ auth.authed ? '管理内容' : '登录管理' }}
-      </button>
+      <div class="lp__actions">
+        <button v-if="auth.authed" class="btn lp__edit" @click="ui.toggleLaunchpadEditing()">
+          {{ ui.launchpadEditing ? '完成' : '编辑顺序' }}
+        </button>
+        <button class="btn btn--primary lp__manage" @click="ui.openDrawer('site')">
+          {{ auth.authed ? '管理内容' : '登录管理' }}
+        </button>
+      </div>
     </header>
 
     <LaunchpadGrid />
@@ -40,8 +45,15 @@ const ui = useUi()
   color: transparent;
 }
 
-.lp__manage {
+.lp__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex: none;
+}
+
+.lp__edit {
+  min-width: 92px;
 }
 
 @media (max-width: 560px) {

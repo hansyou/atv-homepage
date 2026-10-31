@@ -144,7 +144,6 @@ async function onRemoveFolder(folder: Folder): Promise<void> {
   transition:
     transform 320ms var(--ease-spring),
     opacity 320ms var(--ease-out);
-  will-change: transform;
   -webkit-touch-callout: none;
 }
 

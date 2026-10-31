@@ -82,7 +82,6 @@ function onLeave(e: PointerEvent) {
   border-radius: var(--radius-lg);
   isolation: isolate;
   transition: transform 320ms var(--ease-spring);
-  will-change: transform;
 }
 
 .lcard--hero {
@@ -120,13 +119,11 @@ function onLeave(e: PointerEvent) {
   z-index: -1;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(120, 165, 255, 0.5), rgba(120, 165, 255, 0) 70%);
-  filter: blur(26px);
   opacity: 0;
   transform: scale(0.7);
   transition:
     opacity 320ms var(--ease-out),
     transform 380ms var(--ease-spring);
-  will-change: transform, opacity;
 }
 
 .lcard:hover .lcard__glow {
@@ -149,7 +146,6 @@ function onLeave(e: PointerEvent) {
     transform 340ms var(--ease-spring),
     box-shadow 300ms var(--ease-out),
     border-color 200ms ease;
-  will-change: transform;
 }
 
 .lcard:hover .lcard__media {

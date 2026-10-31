@@ -345,6 +345,8 @@ export function useDragSort<T extends SortableItem>(options: DragSortOptions<T>)
       style.transform = `translate3d(${offset.value.x}px, ${offset.value.y}px, 0) scale(1.12) rotate(1.6deg)`
       style.transition = 'none'
       style.zIndex = 40
+      // 拖拽期间才挂 will-change（静态常驻合成层在低配 GPU 上反而掉帧）
+      style.willChange = 'transform'
     }
     return style
   }

@@ -21,7 +21,7 @@ export const useUi = defineStore('ui', () => {
 
   let seq = 0
 
-  const hasLayer = computed(() => drawerOpen.value || overlayFolderId.value !== null)
+  const hasLayer = computed(() => drawerOpen.value || overlayFolderId.value !== null || linkEditorOpen.value || folderEditorOpen.value)
 
   function openDrawer(nextTab: DrawerTab = 'site'): void {
     tab.value = nextTab
@@ -30,20 +30,22 @@ export const useUi = defineStore('ui', () => {
 
   function closeDrawer(): void {
     drawerOpen.value = false
-    linkEditorOpen.value = false
-    folderEditorOpen.value = false
   }
 
   function openLinkEditor(link: Link | null = null): void {
     editingLink.value = link
     linkEditorOpen.value = true
-    openDrawer('site')
   }
 
   function openFolderEditor(folder: Folder | null = null): void {
     editingFolder.value = folder
     folderEditorOpen.value = true
-    openDrawer('site')
+  }
+
+  /** 关闭网址 / 文件夹编辑弹窗 */
+  function closeEditor(): void {
+    linkEditorOpen.value = false
+    folderEditorOpen.value = false
   }
 
   function openFolderOverlay(folderId: string | null): void {
@@ -97,6 +99,7 @@ export const useUi = defineStore('ui', () => {
     closeDrawer,
     openLinkEditor,
     openFolderEditor,
+    closeEditor,
     openFolderOverlay,
     setLaunchpadEditing,
     toggleLaunchpadEditing,

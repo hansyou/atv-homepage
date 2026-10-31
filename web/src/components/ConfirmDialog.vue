@@ -31,8 +31,6 @@ const ui = useUi()
   place-items: center;
   padding: 24px;
   background: rgba(5, 7, 12, 0.55);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
 }
 
 .confirm__panel {

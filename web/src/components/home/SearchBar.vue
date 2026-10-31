@@ -137,7 +137,6 @@ function submit() {
     box-shadow 380ms var(--ease-out),
     transform 420ms var(--ease-spring),
     background 300ms ease;
-  will-change: transform;
 }
 
 .search:hover {

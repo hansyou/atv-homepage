@@ -6,6 +6,25 @@ function prefersReducedMotion(): boolean {
 
 let lenis: Lenis | null = null
 let rafId = 0
+let idleFrames = 0
+
+/** 空闲多少帧后停掉 rAF 循环（约 0.5s 无滚动即休眠，由输入事件唤醒） */
+const IDLE_FRAMES = 30
+
+function tick(time: number): void {
+  if (!lenis) return
+  lenis.raf(time)
+  // 滚动动画进行中持续跑；结束后再跑一小段兜底，然后停摆
+  idleFrames = lenis.isScrolling ? 0 : idleFrames + 1
+  rafId = idleFrames < IDLE_FRAMES ? requestAnimationFrame(tick) : 0
+}
+
+/** 唤醒 rAF 循环（幂等） */
+function wake(): void {
+  if (!lenis || rafId) return
+  idleFrames = 0
+  rafId = requestAnimationFrame(tick)
+}
 
 /** 全局平滑滚动（Apple TV 式惯性） */
 export function initSmoothScroll(): void {
@@ -19,15 +38,20 @@ export function initSmoothScroll(): void {
     wheelMultiplier: 1.05,
   })
 
-  const raf = (time: number) => {
-    lenis?.raf(time)
-    rafId = requestAnimationFrame(raf)
-  }
-  rafId = requestAnimationFrame(raf)
+  // 只在需要时跑 rAF：输入事件唤醒，空闲即停（低配机关键优化）
+  window.addEventListener('wheel', wake, { passive: true })
+  window.addEventListener('touchmove', wake, { passive: true })
+  window.addEventListener('keydown', wake)
+  wake()
 }
 
 export function destroySmoothScroll(): void {
-  cancelAnimationFrame(rafId)
+  if (rafId) cancelAnimationFrame(rafId)
+  rafId = 0
+  idleFrames = 0
+  window.removeEventListener('wheel', wake)
+  window.removeEventListener('touchmove', wake)
+  window.removeEventListener('keydown', wake)
   lenis?.destroy()
   lenis = null
 }
@@ -47,6 +71,7 @@ export function unlockScroll(): void {
 export function scrollToElement(target: HTMLElement | string, offset = 0): void {
   if (lenis) {
     lenis.scrollTo(target, { offset, duration: 1.0 })
+    wake()
     return
   }
   const el = typeof target === 'string' ? document.querySelector(target) : target

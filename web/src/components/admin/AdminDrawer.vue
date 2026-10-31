@@ -4,8 +4,6 @@ import { useAuth } from '../../stores/auth'
 import { useCatalog } from '../../stores/catalog'
 import { useUi, type DrawerTab } from '../../stores/ui'
 import BackupPanel from './BackupPanel.vue'
-import FolderEditor from './FolderEditor.vue'
-import LinkEditor from './LinkEditor.vue'
 
 const catalog = useCatalog()
 const auth = useAuth()
@@ -55,6 +53,7 @@ async function onLogin(): Promise<void> {
   try {
     await auth.login(password.value)
     password.value = ''
+    ui.closeDrawer()
     ui.toast('登录成功，可以管理内容了', 'success')
   } catch (err) {
     loginError.value = (err as Error).message
@@ -150,8 +149,7 @@ function onWallpaperFile(e: Event): void {
 
           <!-- 管理 -->
           <template v-else>
-            <!-- 编辑表单时隐藏标签栏（此时切换标签无意义） -->
-            <nav v-if="!ui.linkEditorOpen && !ui.folderEditorOpen" class="drawer__tabs">
+            <nav class="drawer__tabs">
               <button
                 v-for="tab in TABS"
                 :key="tab.key"
@@ -165,12 +163,8 @@ function onWallpaperFile(e: Event): void {
             </nav>
 
             <div class="drawer__body" data-lenis-prevent>
-              <!-- 编辑器子视图 -->
-              <LinkEditor v-if="ui.linkEditorOpen" :link="ui.editingLink" @done="ui.linkEditorOpen = false" />
-              <FolderEditor v-else-if="ui.folderEditorOpen" :folder="ui.editingFolder" @done="ui.folderEditorOpen = false" />
-
               <!-- 站点设置 -->
-              <template v-else-if="ui.tab === 'site'">
+              <template v-if="ui.tab === 'site'">
                 <div class="drawer__form">
                   <div class="field">
                     <label class="field__label" for="site-tagline">顶部小字（选填）</label>
@@ -222,8 +216,6 @@ function onWallpaperFile(e: Event): void {
   display: flex;
   justify-content: flex-end;
   background: rgba(5, 7, 12, 0.5);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 .drawer {
@@ -233,22 +225,17 @@ function onWallpaperFile(e: Event): void {
   height: 100%;
   padding: 26px 26px 22px;
   overflow: hidden;
-  background: linear-gradient(180deg, rgba(24, 28, 42, 0.92), rgba(14, 17, 26, 0.96));
+  background: linear-gradient(180deg, rgba(24, 28, 42, 0.55), rgba(14, 17, 26, 0.68));
   border-left: 1px solid var(--stroke-strong);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   box-shadow: -30px 0 90px rgba(0, 0, 0, 0.5);
   transition: transform 340ms var(--ease-out);
-  will-change: transform;
 }
 
 .layer-enter-from .drawer,
 .layer-leave-to .drawer {
   transform: translateX(60px);
-}
-
-.layer-enter-from,
-.layer-leave-to {
-  backdrop-filter: blur(0);
-  -webkit-backdrop-filter: blur(0);
 }
 
 .drawer.is-shake {

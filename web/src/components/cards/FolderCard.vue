@@ -88,7 +88,6 @@ function onMove(e: PointerEvent) {
   cursor: pointer;
   isolation: isolate;
   transition: transform 320ms var(--ease-spring);
-  will-change: transform;
 }
 
 .fcard:hover {
@@ -115,7 +114,6 @@ function onMove(e: PointerEvent) {
   z-index: -1;
   border-radius: 50%;
   background: radial-gradient(circle, var(--folder-color), transparent 72%);
-  filter: blur(26px);
   opacity: 0;
   transform: scale(0.7);
   transition:

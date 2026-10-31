@@ -5,6 +5,7 @@ import ToastHost from './components/ToastHost.vue'
 import ConfirmDialog from './components/ConfirmDialog.vue'
 import FolderOverlay from './components/cards/FolderOverlay.vue'
 import AdminDrawer from './components/admin/AdminDrawer.vue'
+import EditorModal from './components/admin/EditorModal.vue'
 import { useCatalog } from './stores/catalog'
 import { useAuth } from './stores/auth'
 import { useUi } from './stores/ui'
@@ -22,6 +23,7 @@ const photoStyle = computed(() =>
 function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape') return
   if (ui.drawerOpen) ui.closeDrawer()
+  else if (ui.linkEditorOpen || ui.folderEditorOpen) ui.closeEditor()
   else if (ui.overlayFolderId) ui.openFolderOverlay(null)
 }
 
@@ -69,6 +71,7 @@ watch(
   </main>
 
   <FolderOverlay />
+  <EditorModal />
   <AdminDrawer />
   <ConfirmDialog />
   <ToastHost />

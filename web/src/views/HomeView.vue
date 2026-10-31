@@ -6,20 +6,35 @@ import LaunchpadPanel from '../components/launchpad/LaunchpadPanel.vue'
 const heroRef = ref<HTMLElement | null>(null)
 
 let rafId = 0
+let lastP = ''
 
-/** 每帧把滚动进度写入 CSS 变量 --p，驱动首屏视差 */
-function loop(): void {
+/** 滚动时把进度写入 CSS 变量 --p，驱动首屏视差（rAF 节流 + 值不变不写） */
+function updateP(): void {
+  rafId = 0
+  const el = heroRef.value
+  if (!el) return
   const vh = window.innerHeight || 1
   const p = Math.min(1, Math.max(0, window.scrollY / (vh * 0.85)))
-  heroRef.value?.style.setProperty('--p', p.toFixed(4))
-  rafId = requestAnimationFrame(loop)
+  const next = p.toFixed(4)
+  if (next === lastP) return // 滚出首屏（p 封顶 1）后零写入
+  lastP = next
+  el.style.setProperty('--p', next)
+}
+
+function onScroll(): void {
+  if (rafId) return
+  rafId = requestAnimationFrame(updateP)
 }
 
 onMounted(() => {
-  rafId = requestAnimationFrame(loop)
+  updateP()
+  window.addEventListener('scroll', onScroll, { passive: true })
 })
 
-onUnmounted(() => cancelAnimationFrame(rafId))
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  if (rafId) cancelAnimationFrame(rafId)
+})
 </script>
 
 <template>

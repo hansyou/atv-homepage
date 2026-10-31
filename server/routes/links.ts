@@ -3,7 +3,7 @@ import type { Bindings, LinkRow } from '../types'
 import { requireAuth } from '../lib/auth'
 import { asBoolean, asHttpUrl, asIconUrl, asId, asObject, asOrder, asString, fail, newId } from '../lib/validate'
 
-const MAX_PINNED = 5
+const MAX_PINNED = 7
 const links = new Hono<{ Bindings: Bindings }>()
 
 links.use('*', requireAuth)

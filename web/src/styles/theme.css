@@ -125,9 +125,7 @@ select {
 .page-bg__glow {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
   opacity: 0.32;
-  will-change: transform;
 }
 
 .page-bg__glow--a {
@@ -181,7 +179,6 @@ select {
     background var(--dur-fast) ease,
     border-color var(--dur-fast) ease,
     opacity var(--dur-fast) ease;
-  will-change: transform;
 }
 
 .btn:hover {
@@ -291,7 +288,6 @@ select {
 .rise {
   animation: rise var(--dur-slow) var(--ease-out) both;
   animation-delay: var(--d, 0ms);
-  will-change: transform, opacity;
 }
 
 /* 滚动入场：配合 v-intersect */
@@ -302,7 +298,6 @@ select {
     opacity 420ms var(--ease-out),
     transform 520ms var(--ease-out);
   transition-delay: calc(var(--i, 0) * 28ms);
-  will-change: transform, opacity;
 }
 
 /* 用属性而非 class 标记：元素的 :class 绑定更新时 Vue 会重写 className，指令追加的 class 会被抹掉 */

@@ -90,7 +90,7 @@ async function submit(): Promise<void> {
     <label class="editor__check">
       <input v-model="form.is_pinned" type="checkbox" />
       <span class="editor__check-box" aria-hidden="true" />
-      放入首页快捷位（最多 5 个）
+      放入首页快捷位（最多 7 个）
     </label>
 
     <p v-if="error" class="field__error editor__error">{{ error }}</p>

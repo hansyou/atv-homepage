@@ -105,8 +105,6 @@ function close() {
   place-items: center;
   padding: 24px;
   background: rgba(5, 7, 12, 0.52);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
 }
 
 .overlay__panel {
@@ -115,13 +113,14 @@ function close() {
   overflow: auto;
   padding: 30px 30px 34px;
   border-radius: 30px;
-  background: linear-gradient(180deg, rgba(24, 28, 42, 0.86), rgba(16, 19, 30, 0.9));
+  background: linear-gradient(180deg, rgba(24, 28, 42, 0.62), rgba(16, 19, 30, 0.74));
   border: 1px solid var(--stroke-strong);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   box-shadow: 0 50px 120px rgba(0, 0, 0, 0.6);
   transition:
     transform 340ms var(--ease-out),
     opacity 230ms var(--ease-out);
-  will-change: transform, opacity;
 }
 
 .overlay__head {
@@ -168,7 +167,6 @@ function close() {
   position: relative;
   border-radius: var(--radius-lg);
   transition: transform 320ms var(--ease-spring);
-  will-change: transform;
   -webkit-touch-callout: none;
 }
 

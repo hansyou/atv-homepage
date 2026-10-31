@@ -18,7 +18,7 @@ export const useCatalog = defineStore('catalog', () => {
     links.value
       .filter((l) => l.is_pinned === 1)
       .sort(byOrder)
-      .slice(0, 5),
+      .slice(0, 7),
   )
 
   /** 启动台网格：文件夹与独立网址按 sort_order 交错排列 */
